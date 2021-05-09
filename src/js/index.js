@@ -275,6 +275,8 @@ class App {
 document.addEventListener('DOMContentLoaded', () => {
     const onClickButton = async () => {
         document.querySelector('#button-start').style.display = 'none';
+        document.querySelector('#text-attention').style.display = 'none';
+
 
         const resolution = { width: 224, height: 224 };
 

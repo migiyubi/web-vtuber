@@ -17,3 +17,7 @@ body {
 #button-start {
   font-size: 1.5em;
 }
+
+#text-attention {
+  margin: 8px;
+}
