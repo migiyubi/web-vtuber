@@ -13,8 +13,8 @@ class ModelRenderer {
 
         this._scene = new THREE.Scene();
 
-        this._camera = new THREE.PerspectiveCamera(15, resolution.width/resolution.height, 1, 1000);
-        this._camera.position.set(0, 1.45, -1.5);
+        this._camera = new THREE.PerspectiveCamera(30, resolution.width/resolution.height, 0.1, 100);
+        this._camera.position.set(0, 1.45, -0.77);
         this._camera.lookAt(new THREE.Vector3(0, 1.45, 0));
 
         this._light = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -276,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const onClickButton = async () => {
         document.querySelector('#button-start').style.display = 'none';
         document.querySelector('#text-attention').style.display = 'none';
-
 
         const resolution = { width: 224, height: 224 };
 
