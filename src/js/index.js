@@ -76,6 +76,8 @@ class ModelRenderer {
                     this._neck = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Neck);
                     this._chest = vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.Chest);
   
+                    this._avatar.lookAt.target = this._camera;
+
                     if (adjust !== undefined) {
                         adjust(vrm);
                     }
@@ -163,7 +165,7 @@ class ModelRenderer {
             }
             this._avatar.blendShapeProxy.setValue(morphName, 0.7);
 
-            this._avatar.blendShapeProxy.update();
+            this._avatar.update(this._clock.getDelta());
         }
 
         this._renderer.render(this._scene, c);
