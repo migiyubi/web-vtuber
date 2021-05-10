@@ -192,7 +192,12 @@ class App {
             }
         );
 
-        await this.openCamera(this._resolution, this._video);
+        try {
+            await this.openCamera(this._resolution, this._video);
+        }
+        catch (e) {
+            alert('Failed to connect to the camera service.\nPlease make sure that other applications are not using the camera.');
+        }
 
         this._canvasInput.width = this._resolution.width;
         this._canvasInput.height = this._resolution.height;
