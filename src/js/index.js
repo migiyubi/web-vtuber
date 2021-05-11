@@ -8,7 +8,6 @@ import { VRM, VRMSchema } from '@pixiv/three-vrm';
 class ModelRenderer {
     constructor(canvas, resolution={ width: 640, height: 360 }) {
         this._renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-        this._renderer.setSize(resolution.width, resolution.height);
         this._renderer.setPixelRatio(window.devicePixelRatio);
 
         this._scene = new THREE.Scene();
@@ -125,12 +124,6 @@ class ModelRenderer {
             // emotion.
             emotion = (face.emotion.length > 0) && (face.emotion[0].score > 0.7) ? face.emotion[0].emotion : 'neutral';
         }
-        else {
-            mouth = 0.0;
-            emotion = 'neutral';
-            p.set(0, 0, 0);
-            r.set(0, 0, 0, 1);
-        }
 
         // easing.
         const coef = 0.2;
@@ -172,40 +165,17 @@ class ModelRenderer {
     }
 }
 
-class App {
-    constructor(resolution) {
-        this._video = document.createElement('video');
-        this._canvasInput = document.querySelector('#canvas-input');
-        this._canvasOutput = document.querySelector('#canvas-output');
-
-        this._renderer = new ModelRenderer(this._canvasOutput);
-
+class FaceDetector {
+    constructor(canvas, resolution) {
+        this._canvas = canvas;
         this._resolution = resolution;
     }
 
-    async init(videoPath, startAt=0) {
-        this._renderer.init(
-            'https://raw.githubusercontent.com/migiyubi/web-vtuber/master/models/jinbot.vrm',
-            (vrm) => {
-                vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.LeftUpperArm).rotation.z = 1.0;
-                vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.RightUpperArm).rotation.z = -1.0;
-            }
-        );
-
-        try {
-            await this.openCamera(this._resolution, this._video);
-        }
-        catch (e) {
-            alert('Failed to connect to the camera service.\nPlease make sure that other applications are not using the camera.');
-        }
-
-        this._canvasInput.width = this._resolution.width;
-        this._canvasInput.height = this._resolution.height;
-
+    async init(modelBasePath) {
         const config = {
             debug: false,
             backend: 'webgl',
-            modelBasePath: 'https://raw.githubusercontent.com/migiyubi/web-vtuber/master/weights',
+            modelBasePath: modelBasePath,
             filter: {
                 enabled: true,
                 width: this._resolution.width,
@@ -228,7 +198,68 @@ class App {
             hand: { enabled: false },
             object: { enabled: false }
         }
+
         this._human = new Human(config);
+    }
+
+    async update(video) {
+        const h = this._human;
+        const c = this._canvas;
+
+        const result = await h.detect(video);
+
+        c.getContext('2d').drawImage(result.canvas, 0, 0);
+
+        if (result.face.length <= 0) {
+            return null;
+        }
+
+        h.draw.face(c, result.face, {
+            drawLabels: false,
+            // workaround: `drawLabels` doesn't work.
+            labelColor: 'rgba(0, 0, 0, 0.0)',
+            shadowColor: 'rgba(0, 0, 0, 0.0)'
+        });
+
+        return result.face[0];
+    }
+}
+
+class App {
+    constructor(resolution) {
+        this._video = document.createElement('video');
+        this._canvasInput = document.querySelector('#canvas-input');
+        this._canvasOutput = document.querySelector('#canvas-output');
+
+        this._detector = new FaceDetector(this._canvasInput, resolution);
+        this._renderer = new ModelRenderer(this._canvasOutput);
+
+        this._resolution = resolution;
+    }
+
+    async init(videoPath, startAt=0) {
+        try {
+            await this.openCamera(this._resolution, this._video);
+        }
+        catch (e) {
+            alert('Failed to connect to the camera service.\nPlease make sure that other applications are not using the camera.');
+            return;
+        }
+
+        this._renderer.init(
+            'https://raw.githubusercontent.com/migiyubi/web-vtuber/master/models/jinbot.vrm',
+            (vrm) => {
+                vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.LeftUpperArm).rotation.z = 1.0;
+                vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.RightUpperArm).rotation.z = -1.0;
+            }
+        );
+
+        this._canvasInput.width = this._resolution.width;
+        this._canvasInput.height = this._resolution.height;
+
+        await this._detector.init(
+            'https://raw.githubusercontent.com/migiyubi/web-vtuber/master/weights'
+        );
     }
 
     start() {
@@ -243,23 +274,9 @@ class App {
     }
 
     async update() {
-        const h = this._human;
-        const c = this._canvasInput;
+        const face = await this._detector.update(this._video);
 
-        const result = await h.detect(this._video);
-
-        c.getContext('2d').drawImage(result.canvas, 0, 0);
-
-        if (result.face.length > 0) {
-            h.draw.face(c, result.face, {
-                drawLabels: false,
-                // workaround: `drawLabels` doesn't work.
-                labelColor: 'rgba(0, 0, 0, 0.0)',
-                shadowColor: 'rgba(0, 0, 0, 0.0)'
-            });
-
-            this._renderer.render(result.face[0]);
-        }
+        this._renderer.render(face);
     }
 
     async openCamera(resolution, domElement=document.createElement('video')) {
