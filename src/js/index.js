@@ -63,7 +63,7 @@ class ModelRenderer {
         this._renderer.setSize(w, h);
     }
 
-    init(vrmFilepath, adjust) {
+    init(vrmFilepath, adjust, onLoad) {
         const loader = new GLTFLoader();
         loader.load(vrmFilepath,
             (gltf) => {
@@ -79,6 +79,10 @@ class ModelRenderer {
 
                     if (adjust !== undefined) {
                         adjust(vrm);
+                    }
+
+                    if (onLoad !== undefined) {
+                        onLoad();
                     }
                 });
             },
@@ -238,7 +242,7 @@ class App {
         this._resolution = resolution;
     }
 
-    async init(videoPath, startAt=0) {
+    async init() {
         try {
             await this.openCamera(this._resolution, this._video);
         }
@@ -252,6 +256,9 @@ class App {
             (vrm) => {
                 vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.LeftUpperArm).rotation.z = 1.0;
                 vrm.humanoid.getBoneNode(VRMSchema.HumanoidBoneName.RightUpperArm).rotation.z = -1.0;
+            },
+            () => {
+                document.querySelector('#image-load').style.display = 'none';
             }
         );
 
@@ -296,9 +303,12 @@ class App {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#image-load').style.display = 'none';
+
     const onClickButton = async () => {
         document.querySelector('#button-start').style.display = 'none';
         document.querySelector('#text-attention').style.display = 'none';
+        document.querySelector('#image-load').style.display = 'block';
 
         const resolution = { width: 224, height: 224 };
 

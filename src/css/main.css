@@ -21,3 +21,11 @@ body {
 #text-attention {
   margin: 8px;
 }
+
+#image-load {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100px;
+  margin: auto;
+}
