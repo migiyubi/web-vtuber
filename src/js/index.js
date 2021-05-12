@@ -1,6 +1,6 @@
 import 'css/main.css';
 
-import Human from './libs/human.esm.js';
+import Human from '@vladmandic/human';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { VRM, VRMSchema } from '@pixiv/three-vrm';

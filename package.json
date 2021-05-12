@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@pixiv/three-vrm": "^0.6.3",
+    "@vladmandic/human": "^1.8.4",
     "three": "^0.128.0"
   }
 }
