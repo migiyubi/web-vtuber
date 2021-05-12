@@ -145,11 +145,12 @@ class ModelRenderer {
 
             this._avatar.blendShapeProxy.setValue(VRMSchema.BlendShapePresetName.A, mouth);
 
-            const t = this._nextBlinkTime - this._clock.getElapsedTime();
-            if (t < 0.0) {
-                this._nextBlinkTime = this._clock.getElapsedTime() + 3.0 + 4.0 * Math.random();
+            const dt = this._clock.getDelta();
+            const t = this._clock.getElapsedTime();
+            if (this._nextBlinkTime - t < 0.0) {
+                this._nextBlinkTime = t + 3.0 + 4.0 * Math.random();
             }
-            const blink = 1.0 - Math.min(Math.abs(15.0 * t - 1.0), 1.0);
+            const blink = 1.0 - Math.min(Math.abs(15.0 * (this._nextBlinkTime - t) - 1.0), 1.0);
             this._avatar.blendShapeProxy.setValue(VRMSchema.BlendShapePresetName.Blink, blink);
 
             const morphName = (this._morphNameMap[emotion] !== undefined) ? this._morphNameMap[emotion] : this._morphNameMap['neutral'];
@@ -158,7 +159,7 @@ class ModelRenderer {
             }
             this._avatar.blendShapeProxy.setValue(morphName, 0.7);
 
-            this._avatar.update(this._clock.getDelta());
+            this._avatar.update(dt);
         }
 
         this._renderer.render(this._scene, c);
